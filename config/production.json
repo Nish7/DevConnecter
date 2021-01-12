@@ -1,0 +1,7 @@
+{
+    "mongoURI": "mongodb+srv://nish7:Nish12345@devconnector.gpf2n.mongodb.net/<dbname>?retryWrites=true&w=majority",
+    "jwtSecret":"mysecret",
+    "githubclientid":"13fc4977ba7fca1c1920",
+    "githubclientsecret":"605fee0734f08ce5989fd45825d37b39c1148265",
+    "githubtoken":"6c57e038a348009000e5736633ef1bb20aed83a6"
+}
