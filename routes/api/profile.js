@@ -17,13 +17,13 @@ router.get('/me', auth, async (req, res) => {
 		}).populate('user', ['name', 'avatar']);
 
 		if (!profile) {
-			res.status(400).json({ msg: 'There is no profile for this user' });
+			return res.status(400).json({ msg: 'There is no profile for this user' });
 		}
 
-		res.json(profile);
-	} catch (error) {
-		console.error(error.message);
-		res.status(500).send('Server Eroor');
+		return res.json(profile);
+	} catch (err) {
+		console.error(err.message);
+		return res.status(500).send('Server Error');
 	}
 });
 
@@ -62,13 +62,13 @@ router.post(
 		req.body.user = req.user.id;
 
 		try {
-			let profile = await Profile.findOne({ user: req.body.id });
+			let profile = await Profile.findOne({ user: req.body.user });
 
 			// Update
 			if (profile) {
 				// Update
 				profile = await Profile.findOneAndUpdate(
-					{ user: req.body.id },
+					{ user: req.body.user },
 					req.body,
 					{ new: true },
 				);
@@ -130,7 +130,8 @@ router.get('/user/:user_id', async (req, res) => {
 // @access Private
 router.delete('/', auth, async (req, res) => {
 	try {
-		// TODO: Remove Users Posts
+		// Remove Users Posts
+		await Post.deleteMany({ user: req.user.id });
 
 		// Remove Profile
 		await Profile.findOneAndRemove({ user: req.user.id });
@@ -164,8 +165,6 @@ router.put(
 			return res.status(400).json({ errors: errors.array() });
 		}
 
-		console.log(req.body);
-
 		try {
 			const profile = await Profile.findOne({ user: req.user.id });
 			profile.experience.unshift(req.body);
@@ -184,18 +183,17 @@ router.put(
 // @access Private
 router.delete('/experience/:exp_id', auth, async (req, res) => {
 	try {
-		const profile = await Profile.findOne({ user: req.user.id });
+		const foundProfile = await Profile.findOne({ user: req.user.id });
 
-		// Remove
-		profile.experience = profile.experience.filter(
-			(exp) => exp.id !== req.params.exp_id,
+		foundProfile.experience = foundProfile.experience.filter(
+			(exp) => exp._id.toString() !== req.params.exp_id,
 		);
 
-		await profile.save();
-		res.send(profile);
-	} catch (err) {
-		console.error(err.message);
-		return res.status(500).send('Server Error');
+		await foundProfile.save();
+		return res.status(200).json(foundProfile);
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({ msg: 'Server error' });
 	}
 });
 
@@ -241,11 +239,11 @@ router.delete('/education/:edu_id', auth, async (req, res) => {
 
 		// Remove
 		profile.education = profile.education.filter(
-			(edu) => edu.id !== req.params.edu_id,
+			(edu) => edu._id.toString() !== req.params.edu_id,
 		);
 
 		await profile.save();
-		res.send(profile);
+		return res.status(200).json(profile);
 	} catch (err) {
 		console.error(err.message);
 		return res.status(500).send('Server Error');
